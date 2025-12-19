@@ -1,0 +1,21 @@
+export type Options = {
+	cwd?: string;
+	dry?: boolean;
+
+	/**
+	 * Allow deleting paths outside of cwd.
+	 * Required when any resolved path is not within the working directory.
+	 * @default false
+	 */
+	dangerous?: boolean;
+};
+
+export type Failure = {
+	path: string;
+	error: Error;
+};
+
+export type Result = {
+	deleted: string[];
+	errors: Failure[];
+};
