@@ -8,7 +8,7 @@ import {
 import { waitForDeletion } from './utils/wait-for-deletion.ts';
 
 // Windows CI needs more time for background cleanup processes
-setProcessTimeout(30_000);
+setProcessTimeout(process.env.CI ? 60_000 : 10_000);
 
 // Set isolated temp directory for all tests
 const testTmpdir = path.join(os.tmpdir(), `poof-test-${crypto.randomUUID()}`);
