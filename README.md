@@ -34,16 +34,16 @@ npm install -g poof
 
 ```sh
 # Delete files or directories
-poof node_modules dist
+$ poof node_modules dist
 
 # Use glob patterns
-poof "*.log" "temp-*"
+$ poof "*.log" "temp-*"
 
 # Recursive match with ** (searches all subdirectories)
-poof "**/node_modules" "**/dist"
+$ poof "**/node_modules" "**/dist"
 
 # Verbose output
-poof --verbose ./large-directory
+$ poof --verbose ./large-directory
 ```
 
 ### Options
