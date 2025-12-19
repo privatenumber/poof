@@ -11,6 +11,11 @@
 		"cli"
 	],
 	"license": "MIT",
+	"repository": "privatenumber/poof",
+	"author": {
+		"name": "Hiroki Osame",
+		"email": "hiroki.osame@gmail.com"
+	},
 	"files": [
 		"dist"
 	],
