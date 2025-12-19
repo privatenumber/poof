@@ -7,7 +7,7 @@
 		"bench": "node bench.ts"
 	},
 	"dependencies": {
-		"nano-spawn": "^0.2.0",
+		"nano-spawn": "^1.0.3",
 		"poof": "workspace:*",
 		"pretty-bytes": "^6.1.1",
 		"rimraf": "^6.0.1"
