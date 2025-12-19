@@ -18,6 +18,7 @@ export const startRmWorker = () => {
 		detached: true,
 		stdio: ['pipe', 'ignore', 'ignore'],
 		windowsHide: true,
+		cwd: '/', // Don't hold reference to parent's cwd (allows directory deletion on Windows)
 	});
 
 	const stdin = child.stdin!;
