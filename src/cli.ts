@@ -28,8 +28,10 @@ const formatError = ({ error }: Failure) => {
 const argv = cli({
 	name: packageJson.name,
 	version: packageJson.version,
-	description: packageJson.description,
 	parameters: ['[globs...]'],
+	help: {
+		description: packageJson.description,
+	},
 	flags: {
 		dry: {
 			type: Boolean,
