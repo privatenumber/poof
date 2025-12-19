@@ -1,5 +1,5 @@
 <h2 align="center">
-    <img width="240" src=".github/logo.png">
+    <img width="240" src=".github/logo.webp">
     <br><br>
 <a href="https://npm.im/poof"><img src="https://badgen.net/npm/v/poof"></a> <a href="https://npm.im/poof"><img src="https://badgen.net/npm/dm/poof"></a> <a href="https://packagephobia.now.sh/result?p=poof"><img src="https://packagephobia.now.sh/badge?p=poof"></a>
 </h2>
@@ -246,3 +246,8 @@ Node.js >= 20.19.6
 ## License
 
 MIT
+
+<br>
+<p align="center">
+	<img width="830" src=".github/banner.webp">
+</p>
