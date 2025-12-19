@@ -139,11 +139,11 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(result.deleted.every(p => !p.includes('\\'))).toBe(true); // Always POSIX slashes
 		expect(await fixture.exists('exists.txt')).toBe(false);
 
-		// Missing explicit paths should be reported as errors
+		// Missing explicit paths should be reported as errors (order is non-deterministic)
 		expect(result.errors).toHaveLength(2);
-		expect(result.errors[0].path).toBe('nonexistent.txt');
-		expect((result.errors[0].error as NodeJS.ErrnoException).code).toBe('ENOENT');
-		expect(result.errors[1].path).toBe('also-missing.txt');
+		const errorPaths = result.errors.map(error => error.path).sort();
+		expect(errorPaths).toEqual(['also-missing.txt', 'nonexistent.txt']);
+		expect(result.errors.every(error => (error.error as NodeJS.ErrnoException).code === 'ENOENT')).toBe(true);
 	});
 
 	test('finds files recursively with **/*.ext pattern', async () => {

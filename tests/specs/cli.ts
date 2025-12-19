@@ -34,6 +34,9 @@ export default testSuite('CLI', ({ test }) => {
 		const poofProcess = await poofCli(['--verbose', 'file.txt'], { cwd: fixture.path });
 		onTestFail(() => console.log(poofProcess));
 		expect(poofProcess.stdout).toContain('Removed: file.txt');
+	}, {
+		// Retry: Windows file handles can cause EBUSY during fs-fixture cleanup
+		retry: 3,
 	});
 
 	test('removes single file', async ({ onTestFail }) => {
@@ -45,6 +48,9 @@ export default testSuite('CLI', ({ test }) => {
 		onTestFail(() => console.log(poofProcess));
 
 		expect(await fixture.exists('file.txt')).toBe(false);
+	}, {
+		// Retry: Windows file handles can cause EBUSY during fs-fixture cleanup
+		retry: 3,
 	});
 
 	test('removes directory', async ({ onTestFail }) => {
@@ -57,6 +63,9 @@ export default testSuite('CLI', ({ test }) => {
 		onTestFail(() => console.log(poofProcess));
 
 		expect(await fixture.exists('dir')).toBe(false);
+	}, {
+		// Retry: Windows file handles can cause EBUSY during fs-fixture cleanup
+		retry: 3,
 	});
 
 	test('removes multiple targets', async ({ onTestFail }) => {
@@ -72,6 +81,9 @@ export default testSuite('CLI', ({ test }) => {
 		expect(await fixture.exists('file1.txt')).toBe(false);
 		expect(await fixture.exists('file2.txt')).toBe(false);
 		expect(await fixture.exists('dir')).toBe(false);
+	}, {
+		// Retry: Windows file handles can cause EBUSY during fs-fixture cleanup
+		retry: 3,
 	});
 
 	test('supports glob patterns', async ({ onTestFail }) => {
@@ -89,6 +101,9 @@ export default testSuite('CLI', ({ test }) => {
 		expect(await fixture.exists('file2.txt')).toBe(false);
 		expect(await fixture.exists('keep.md')).toBe(true);
 		expect(await fixture.exists('dir/keep.txt')).toBe(true);
+	}, {
+		// Retry: Windows file handles can cause EBUSY during fs-fixture cleanup
+		retry: 3,
 	});
 
 	test('exits silently when glob has no matches', async () => {
@@ -216,5 +231,8 @@ export default testSuite('CLI', ({ test }) => {
 			console.log('process.env.TMP:', process.env.TMP);
 			console.log('process.platform:', process.platform);
 		});
+	}, {
+		// Retry: Windows file handles can cause EBUSY during fs-fixture cleanup
+		retry: 3,
 	});
 });

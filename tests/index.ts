@@ -7,7 +7,8 @@ import {
 } from 'manten';
 import { waitForDeletion } from './utils/wait-for-deletion.ts';
 
-setProcessTimeout(10_000);
+// Windows CI needs more time for background cleanup processes
+setProcessTimeout(30_000);
 
 // Set isolated temp directory for all tests
 const testTmpdir = path.join(os.tmpdir(), `poof-test-${crypto.randomUUID()}`);
