@@ -9,7 +9,7 @@
 	"dependencies": {
 		"nano-spawn": "^2.0.0",
 		"poof": "workspace:*",
-		"pretty-bytes": "^6.1.1",
+		"pretty-bytes": "^7.1.0",
 		"rimraf": "^6.0.1"
 	}
 }

@@ -48,7 +48,7 @@
 		"nano-spawn": "^2.0.0",
 		"picomatch": "^4.0.3",
 		"pkgroll": "^2.21.4",
-		"pretty-bytes": "^6.1.1",
+		"pretty-bytes": "^7.1.0",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	}
