@@ -1,15 +1,7 @@
 import path from 'node:path';
 import { cli } from 'cleye';
-import { closest, distance } from 'fastest-levenshtein';
 import packageJson from '../package.json' with { type: 'json' };
 import poof, { type Failure } from './index.ts';
-
-const knownFlags = ['dry', 'verbose', 'dangerous', 'version', 'help'];
-
-const findClosestFlag = (unknown: string): string | undefined => {
-	const match = closest(unknown, knownFlags);
-	return distance(unknown, match) <= 2 ? match : undefined;
-};
 
 const friendlyMessages: Record<string, string> = {
 	EBUSY: 'Resource busy or locked',
@@ -48,17 +40,8 @@ const argv = cli({
 			description: 'Allow deleting paths outside current directory',
 		},
 	},
+	strictFlags: true,
 });
-
-const unknownFlags = Object.keys(argv.unknownFlags);
-if (unknownFlags.length > 0) {
-	for (const flag of unknownFlags) {
-		const closestMatch = findClosestFlag(flag);
-		const suggestion = closestMatch ? ` (Did you mean --${closestMatch}?)` : '';
-		console.error(`Unknown flag: --${flag}.${suggestion}`);
-	}
-	process.exit(1);
-}
 
 (async () => {
 	const { globs } = argv._;
