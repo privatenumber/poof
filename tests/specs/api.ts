@@ -114,6 +114,30 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(await fixture.exists('logs/keep.txt')).toBe(true);
 	});
 
+	test('ignore option excludes matching paths', async () => {
+		await using fixture = await createFixture({
+			'dist/bundle.js': 'bundle',
+			'packages/a/dist/index.js': 'a',
+			'packages/b/dist/index.js': 'b',
+			'node_modules/foo/dist/index.js': 'foo',
+			'packages/node_modules/bar/dist/index.js': 'bar',
+		});
+
+		await poof('**/dist', {
+			cwd: fixture.path,
+			ignore: ['**/node_modules/**'],
+		});
+
+		// dist folders outside node_modules should be deleted
+		expect(await fixture.exists('dist')).toBe(false);
+		expect(await fixture.exists('packages/a/dist')).toBe(false);
+		expect(await fixture.exists('packages/b/dist')).toBe(false);
+
+		// dist folders inside node_modules should remain
+		expect(await fixture.exists('node_modules/foo/dist/index.js')).toBe(true);
+		expect(await fixture.exists('packages/node_modules/bar/dist/index.js')).toBe(true);
+	});
+
 	test('returns empty arrays when glob has no matches', async () => {
 		await using fixture = await createFixture({});
 

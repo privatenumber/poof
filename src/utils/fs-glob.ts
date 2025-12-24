@@ -8,6 +8,11 @@ type GlobOptions = {
 	 * @default false
 	 */
 	dot?: boolean;
+
+	/**
+	 * Glob patterns to exclude from matching
+	 */
+	ignore?: string[];
 };
 
 /**
@@ -22,7 +27,10 @@ export const glob = async (
 	options?: GlobOptions,
 ): Promise<string[]> => {
 	const includeDot = options?.dot ?? false;
-	const isMatch = picomatch(globPattern, { dot: includeDot });
+	const isMatch = picomatch(globPattern, {
+		dot: includeDot,
+		ignore: options?.ignore,
+	});
 	const isRecursive = globPattern.includes('**');
 	const results: string[] = [];
 	const rootPrefix = root.length + 1;

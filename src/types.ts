@@ -8,6 +8,12 @@ export type Options = {
 	 * @default false
 	 */
 	dangerous?: boolean;
+
+	/**
+	 * Glob patterns to exclude from deletion.
+	 * Matched files/directories will be filtered out of results.
+	 */
+	ignore?: string[];
 };
 
 export type Failure = {

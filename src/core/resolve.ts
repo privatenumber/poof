@@ -50,6 +50,7 @@ export const resolvePatterns = async (
 	patterns: string[],
 	cwd: string,
 	dangerous = false,
+	ignore?: string[],
 ): Promise<ResolveResult> => {
 	const files: string[] = [];
 	const notFound: string[] = [];
@@ -98,7 +99,10 @@ export const resolvePatterns = async (
 		const descendIntoDotDirectories = /^\.[^\\/.]|[{,]\.[^\\/.]/.test(scanned.glob);
 
 		const globStart = performance.now();
-		const matches = await glob(root, scanned.glob, { dot: descendIntoDotDirectories });
+		const matches = await glob(root, scanned.glob, {
+			dot: descendIntoDotDirectories,
+			ignore,
+		});
 		debug(`glob pattern=${pattern} files=${matches.length} time=${(performance.now() - globStart).toFixed(2)}ms`);
 
 		// Avoid spread to prevent stack overflow with 100k+ matches (V8 arg limit ~65k)
