@@ -39,6 +39,11 @@ const argv = cli({
 			type: Boolean,
 			description: 'Allow deleting paths outside current directory',
 		},
+		ignore: {
+			type: [String],
+			alias: 'i',
+			description: 'Glob pattern to exclude from deletion',
+		},
 	},
 	strictFlags: true,
 });
@@ -54,6 +59,7 @@ const argv = cli({
 	const { deleted, errors } = await poof(globs, {
 		dry: argv.flags.dry,
 		dangerous: argv.flags.dangerous,
+		ignore: argv.flags.ignore,
 	});
 
 	if (deleted.length === 0 && errors.length === 0) {

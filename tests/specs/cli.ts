@@ -106,6 +106,24 @@ export default testSuite('CLI', ({ test }) => {
 		retry: 3,
 	});
 
+	test('--ignore excludes matching paths', async ({ onTestFail }) => {
+		await using fixture = await createFixture({
+			'dist/bundle.js': 'bundle',
+			'src/index.ts': 'source',
+			'node_modules/foo/dist/index.js': 'foo',
+		});
+
+		const poofProcess = await poofCli(['**/dist', '--ignore', '**/node_modules/**'], { cwd: fixture.path });
+		onTestFail(() => console.log(poofProcess));
+
+		expect(await fixture.exists('dist')).toBe(false);
+		expect(await fixture.exists('src/index.ts')).toBe(true);
+		expect(await fixture.exists('node_modules/foo/dist/index.js')).toBe(true);
+	}, {
+		// Retry: Windows file handles can cause EBUSY during fs-fixture cleanup
+		retry: 3,
+	});
+
 	test('exits silently when glob has no matches', async () => {
 		await using fixture = await createFixture({});
 

@@ -52,6 +52,7 @@ $ poof --verbose ./large-directory
 | ------------- | ----- | ---------------------------------------------- |
 | `--dry`       | `-d`  | Preview files without deleting                 |
 | `--verbose`   | `-v`  | Log each file as it's deleted                  |
+| `--ignore`    | `-i`  | Glob pattern to exclude from deletion         |
 | `--dangerous` |       | Allow deleting paths outside current directory |
 | `--version`   |       | Show version                                   |
 | `--help`      |       | Show help                                      |
@@ -103,6 +104,18 @@ $ poof "**/*.log"
 
 # Multiple patterns
 $ poof "**/dist" "**/coverage" "**/*.tmp"
+```
+
+### Excluding paths
+
+Use `--ignore` to exclude paths from deletion:
+
+```sh
+# Delete all dist folders except those in node_modules
+$ poof "**/dist" --ignore "**/node_modules/**"
+
+# Multiple ignore patterns
+$ poof "**/*.log" -i "**/important/**" -i "**/backup/**"
 ```
 
 ### Dotfiles (hidden files)
@@ -215,6 +228,7 @@ type Options = {
     cwd?: string
     dry?: boolean
     dangerous?: boolean
+    ignore?: string[]
 }
 
 type Failure = {

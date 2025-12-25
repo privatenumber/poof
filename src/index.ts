@@ -24,7 +24,11 @@ const poof = async (
 
 	// 1. Resolve (includes validation - O(P) instead of O(N))
 	const resolveStart = performance.now();
-	const { files, notFound } = await resolvePatterns(patternArray, cwd, options?.dangerous ?? false);
+	const { files, notFound } = await resolvePatterns(patternArray, {
+		cwd,
+		dangerous: options?.dangerous,
+		ignore: options?.ignore,
+	});
 	debug(`resolve files=${files.length} time=${(performance.now() - resolveStart).toFixed(2)}ms`);
 
 	const filesToDelete = files;

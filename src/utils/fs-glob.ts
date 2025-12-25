@@ -8,6 +8,11 @@ type GlobOptions = {
 	 * @default false
 	 */
 	dot?: boolean;
+
+	/**
+	 * Glob patterns to exclude from matching
+	 */
+	ignore?: string[];
 };
 
 /**
@@ -22,7 +27,15 @@ export const glob = async (
 	options?: GlobOptions,
 ): Promise<string[]> => {
 	const includeDot = options?.dot ?? false;
+	const ignorePatterns = options?.ignore;
 	const isMatch = picomatch(globPattern, { dot: includeDot });
+
+	// Separate matcher to check if a directory should be pruned during traversal
+	// This prevents I/O on ignored directories (not just filtering results)
+	const shouldPrune = ignorePatterns?.length
+		? picomatch(ignorePatterns, { dot: true })
+		: undefined;
+
 	const isRecursive = globPattern.includes('**');
 	const results: string[] = [];
 	const rootPrefix = root.length + 1;
@@ -34,6 +47,11 @@ export const glob = async (
 		for (const entry of entries) {
 			const fullPath = `${directory}/${entry.name}`;
 			const relativePath = fullPath.slice(rootPrefix);
+
+			// Prune ignored paths before any further processing
+			if (shouldPrune?.(relativePath)) {
+				continue;
+			}
 
 			// Check for match - picomatch handles explicit dots in patterns
 			// e.g., "**/.cache" will match .cache even with dot:false

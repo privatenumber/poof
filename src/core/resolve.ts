@@ -4,6 +4,7 @@ import picomatch from 'picomatch';
 import { createDebug } from '../utils/debug.ts';
 import { concurrentMap } from '../utils/concurrent-map.ts';
 import { glob } from '../utils/fs-glob.ts';
+import type { ResolveOptions } from '../types.ts';
 
 const debug = createDebug('poof:resolve');
 
@@ -48,9 +49,9 @@ const validatePath = (target: string, cwd: string, dangerous: boolean) => {
 
 export const resolvePatterns = async (
 	patterns: string[],
-	cwd: string,
-	dangerous = false,
+	options: ResolveOptions,
 ): Promise<ResolveResult> => {
+	const { cwd, dangerous = false, ignore } = options;
 	const files: string[] = [];
 	const notFound: string[] = [];
 
@@ -98,7 +99,10 @@ export const resolvePatterns = async (
 		const descendIntoDotDirectories = /^\.[^\\/.]|[{,]\.[^\\/.]/.test(scanned.glob);
 
 		const globStart = performance.now();
-		const matches = await glob(root, scanned.glob, { dot: descendIntoDotDirectories });
+		const matches = await glob(root, scanned.glob, {
+			dot: descendIntoDotDirectories,
+			ignore,
+		});
 		debug(`glob pattern=${pattern} files=${matches.length} time=${(performance.now() - globStart).toFixed(2)}ms`);
 
 		// Avoid spread to prevent stack overflow with 100k+ matches (V8 arg limit ~65k)
