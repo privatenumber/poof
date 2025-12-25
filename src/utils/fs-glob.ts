@@ -46,7 +46,14 @@ export const glob = async (
 	const rootPrefix = root.length + 1;
 
 	const crawl = async (directory: string): Promise<void> => {
-		const entries = await fs.readdir(directory, { withFileTypes: true });
+		const entries = await fs.readdir(directory, { withFileTypes: true }).catch((error) => {
+			// Ignore missing directories - they may have been deleted by another
+			// process (e.g., concurrent poof instance) between discovery and read
+			if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+				return [];
+			}
+			throw error;
+		});
 		const subdirectories: Promise<void>[] = [];
 
 		for (const entry of entries) {
