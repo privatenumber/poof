@@ -135,18 +135,16 @@ export default testSuite('CLI', ({ test }) => {
 		expect(stdout).toBe('');
 	});
 
-	test('exits with error for explicit non-existent path', async () => {
+	test('silently succeeds for explicit non-existent path (like rm -rf)', async () => {
 		await using fixture = await createFixture({});
 
-		// Explicit paths that don't exist should report errors (like rm/ls)
-		const result = poofCli(['nonexistent-file.txt'], {
+		// Explicit paths that don't exist should be silently ignored (like rm -rf)
+		// Promise resolving means exit code 0
+		const { stdout } = await poofCli(['nonexistent-file.txt'], {
 			cwd: fixture.path,
 		});
 
-		await expect(result).rejects.toMatchObject({
-			exitCode: 1,
-			stderr: expect.stringContaining('nonexistent-file.txt'),
-		});
+		expect(stdout).toBe('');
 	});
 
 	test('errors on unknown flags with suggestion', async () => {

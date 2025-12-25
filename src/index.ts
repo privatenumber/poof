@@ -54,7 +54,7 @@ const poof = async (
 
 	// 1. Resolve (includes validation - O(P) instead of O(N))
 	const resolveStart = performance.now();
-	const { files, notFound } = await resolvePatterns(patternArray, {
+	const { files } = await resolvePatterns(patternArray, {
 		cwd,
 		dangerous: options?.dangerous,
 		ignore: options?.ignore,
@@ -65,15 +65,7 @@ const poof = async (
 	const filesToDelete = filterNestedPaths(files);
 	debug(`filtered ${files.length} -> ${filesToDelete.length} (removed ${files.length - filesToDelete.length} nested)`);
 
-	// 3. Report Errors (NotFound)
-	const errors: Failure[] = notFound.map((pattern) => {
-		const error = new Error(`Path not found: ${pattern}`);
-		(error as NodeJS.ErrnoException).code = 'ENOENT';
-		return {
-			path: pattern,
-			error,
-		};
-	});
+	const errors: Failure[] = [];
 
 	if (options?.dry) {
 		return {

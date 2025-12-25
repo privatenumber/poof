@@ -207,7 +207,7 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(result.errors).toEqual([]);
 	});
 
-	test('reports error for explicit paths that do not exist', async () => {
+	test('silently ignores explicit paths that do not exist (like rm -rf)', async () => {
 		await using fixture = await createFixture({
 			'exists.txt': 'content',
 		});
@@ -223,11 +223,8 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(result.deleted.every(p => !p.includes('\\'))).toBe(true); // Always POSIX slashes
 		expect(await fixture.exists('exists.txt')).toBe(false);
 
-		// Missing explicit paths should be reported as errors (order is non-deterministic)
-		expect(result.errors).toHaveLength(2);
-		const errorPaths = result.errors.map(error => error.path).sort();
-		expect(errorPaths).toEqual(['also-missing.txt', 'nonexistent.txt']);
-		expect(result.errors.every(error => (error.error as NodeJS.ErrnoException).code === 'ENOENT')).toBe(true);
+		// Missing explicit paths silently ignored (like rm -rf)
+		expect(result.errors).toHaveLength(0);
 	});
 
 	test('finds files recursively with **/*.ext pattern', async () => {

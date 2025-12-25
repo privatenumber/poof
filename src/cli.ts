@@ -86,7 +86,6 @@ const argv = cli({
 	if (errors.length > 0) {
 		console.error('Errors:');
 		for (const error of errors) {
-			// For ENOENT, path is the original pattern; for others, it's absolute
 			const displayPath = path.isAbsolute(error.path)
 				? path.relative(cwd, error.path)
 				: error.path;
