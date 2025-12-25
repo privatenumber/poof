@@ -52,7 +52,7 @@ $ poof --verbose ./large-directory
 | ------------- | ----- | ---------------------------------------------- |
 | `--dry`       | `-d`  | Preview files without deleting                 |
 | `--verbose`   | `-v`  | Log each file as it's deleted                  |
-| `--ignore`    | `-i`  | Glob patterns to exclude from deletion         |
+| `--ignore`    | `-i`  | Glob pattern to exclude from deletion         |
 | `--dangerous` |       | Allow deleting paths outside current directory |
 | `--version`   |       | Show version                                   |
 | `--help`      |       | Show help                                      |

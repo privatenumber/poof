@@ -42,7 +42,7 @@ const argv = cli({
 		ignore: {
 			type: [String],
 			alias: 'i',
-			description: 'Glob patterns to exclude from deletion',
+			description: 'Glob pattern to exclude from deletion',
 		},
 	},
 	strictFlags: true,
