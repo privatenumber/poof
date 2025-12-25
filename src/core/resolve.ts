@@ -19,6 +19,12 @@ type ResolveResult = {
 	notFound: string[];
 };
 
+type ResolveOptions = {
+	cwd: string;
+	dangerous?: boolean;
+	ignore?: string[];
+};
+
 /**
  * Validate a path before crawling.
  * Since fdir doesn't follow symlinks, validating the root guarantees all children are safe.
@@ -48,10 +54,9 @@ const validatePath = (target: string, cwd: string, dangerous: boolean) => {
 
 export const resolvePatterns = async (
 	patterns: string[],
-	cwd: string,
-	dangerous = false,
-	ignore?: string[],
+	options: ResolveOptions,
 ): Promise<ResolveResult> => {
+	const { cwd, dangerous = false, ignore } = options;
 	const files: string[] = [];
 	const notFound: string[] = [];
 

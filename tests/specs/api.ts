@@ -138,7 +138,12 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(await fixture.exists('packages/node_modules/bar/dist/index.js')).toBe(true);
 	});
 
-	test('ignore patterns skip directory traversal (not just filtering)', async () => {
+	test('ignore patterns skip directory traversal (not just filtering)', async ({ skip }) => {
+		// Skip on Windows - chmod doesn't enforce POSIX permissions
+		if (process.platform === 'win32') {
+			skip('chmod permissions not enforced on Windows');
+		}
+
 		await using fixture = await createFixture({
 			'dist/bundle.js': 'bundle',
 			'node_modules/foo/dist/index.js': 'foo',
