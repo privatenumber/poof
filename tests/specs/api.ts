@@ -138,6 +138,61 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(await fixture.exists('packages/node_modules/bar/dist/index.js')).toBe(true);
 	});
 
+	test('ignore patterns skip directory traversal (not just filtering)', async () => {
+		await using fixture = await createFixture({
+			'dist/bundle.js': 'bundle',
+			'node_modules/foo/dist/index.js': 'foo',
+		});
+
+		// Make node_modules unreadable - will throw EACCES if we try to readdir it
+		await fs.chmod(fixture.getPath('node_modules'), 0o000);
+
+		try {
+			// Should succeed if we prune correctly (never enters node_modules)
+			// Should throw EACCES if we only filter results after traversing
+			const result = await poof('**/dist', {
+				cwd: fixture.path,
+				ignore: ['**/node_modules/**'],
+			});
+
+			expect(result.deleted).toHaveLength(1);
+			expect(await fixture.exists('dist')).toBe(false);
+		} finally {
+			// Restore permissions for cleanup
+			await fs.chmod(fixture.getPath('node_modules'), 0o755);
+		}
+	});
+
+	test('empty ignore array does not break matching', async () => {
+		await using fixture = await createFixture({
+			'dist/bundle.js': 'bundle',
+		});
+
+		const result = await poof('**/dist', {
+			cwd: fixture.path,
+			ignore: [],
+		});
+
+		expect(result.deleted).toHaveLength(1);
+		expect(await fixture.exists('dist')).toBe(false);
+	});
+
+	test('ignore requires glob pattern to match nested paths', async () => {
+		await using fixture = await createFixture({
+			'cache/file.txt': 'root cache',
+			'src/cache/file.txt': 'nested cache',
+		});
+
+		// Plain "cache" should NOT match "src/cache" - need "**/cache"
+		await poof('**/cache', {
+			cwd: fixture.path,
+			ignore: ['cache'],
+		});
+
+		expect(await fixture.exists('cache')).toBe(true); // Ignored (matches "cache")
+		expect(await fixture.exists('src/cache')).toBe(false); // Deleted (doesn't match "cache")
+	});
+
 	test('returns empty arrays when glob has no matches', async () => {
 		await using fixture = await createFixture({});
 
