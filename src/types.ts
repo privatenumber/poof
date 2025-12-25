@@ -25,3 +25,8 @@ export type Result = {
 	deleted: string[];
 	errors: Failure[];
 };
+
+/**
+ * Options for resolvePatterns - cwd is required, dry is not needed
+ */
+export type ResolveOptions = Pick<Options, 'dangerous' | 'ignore'> & { cwd: string };

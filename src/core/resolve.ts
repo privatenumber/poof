@@ -4,6 +4,7 @@ import picomatch from 'picomatch';
 import { createDebug } from '../utils/debug.ts';
 import { concurrentMap } from '../utils/concurrent-map.ts';
 import { glob } from '../utils/fs-glob.ts';
+import type { ResolveOptions } from '../types.ts';
 
 const debug = createDebug('poof:resolve');
 
@@ -17,12 +18,6 @@ const GLOB_CONCURRENCY = 50;
 type ResolveResult = {
 	files: string[];
 	notFound: string[];
-};
-
-type ResolveOptions = {
-	cwd: string;
-	dangerous?: boolean;
-	ignore?: string[];
 };
 
 /**
