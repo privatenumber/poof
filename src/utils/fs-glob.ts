@@ -20,15 +20,18 @@ type GlobOptions = {
  * Matches both files and directories, stops descending into matched directories
  *
  * Caller is responsible for path resolution and validation.
+ * Accepts single pattern or array of patterns (matched with logical OR).
  */
 export const glob = async (
 	root: string,
-	globPattern: string,
+	globPatterns: string | string[],
 	options?: GlobOptions,
 ): Promise<string[]> => {
 	const includeDot = options?.dot ?? false;
 	const ignorePatterns = options?.ignore;
-	const isMatch = picomatch(globPattern, { dot: includeDot });
+
+	// picomatch handles string[] efficiently (any match = true)
+	const isMatch = picomatch(globPatterns, { dot: includeDot });
 
 	// Separate matcher to check if a directory should be pruned during traversal
 	// This prevents I/O on ignored directories (not just filtering results)
@@ -36,7 +39,9 @@ export const glob = async (
 		? picomatch(ignorePatterns, { dot: true })
 		: undefined;
 
-	const isRecursive = globPattern.includes('**');
+	// Only recursive if at least one pattern has '**'
+	const patterns = Array.isArray(globPatterns) ? globPatterns : [globPatterns];
+	const isRecursive = patterns.some(p => p.includes('**'));
 	const results: string[] = [];
 	const rootPrefix = root.length + 1;
 

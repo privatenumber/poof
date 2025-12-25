@@ -47,6 +47,20 @@ const validatePath = (target: string, cwd: string, dangerous: boolean) => {
 	}
 };
 
+// Detect if pattern requires descending into dotfile directories during crawl
+// Only needed when dotfile dirs are PATHS to search (not match targets)
+// - Brace expansion: {src,.config}/**/* → need to enter .config
+// - Pattern starts with dot: .*/**/* → need to enter dotfile dirs
+// NOT needed for:
+// - **/.cache → looking FOR .cache, not searching INSIDE hidden dirs
+//   (picomatch with dot:false won't match .git/.cache anyway)
+const needsDotMode = (globPattern: string) => /^\.[^\\/.]|[{,]\.[^\\/.]/.test(globPattern);
+
+type GlobGroup = {
+	globs: string[];
+	needsDot: boolean;
+};
+
 export const resolvePatterns = async (
 	patterns: string[],
 	options: ResolveOptions,
@@ -55,7 +69,10 @@ export const resolvePatterns = async (
 	const files: string[] = [];
 	const notFound: string[] = [];
 
-	await concurrentMap(patterns, GLOB_CONCURRENCY, async (pattern) => {
+	// Group glob patterns by their root directory for single-walk optimization
+	const groups = new Map<string, GlobGroup>();
+
+	for (const pattern of patterns) {
 		const posixPattern = toPosix(pattern);
 		const fullPattern = path.isAbsolute(pattern)
 			? posixPattern
@@ -70,6 +87,7 @@ export const resolvePatterns = async (
 		validatePath(pathToValidate, cwd, dangerous);
 
 		if (!scanned.isGlob) {
+			// Handle explicit paths immediately (no grouping needed)
 			await fs.access(fullPattern).then(
 				() => {
 					debug(`explicit path exists: ${fullPattern}`);
@@ -80,32 +98,42 @@ export const resolvePatterns = async (
 					notFound.push(pattern);
 				},
 			);
-			return;
+			continue;
 		}
 
-		// Pass pre-computed root and glob pattern to avoid duplicate path resolution
+		// Determine root directory for this glob
 		let root = scanned.base || toPosix(cwd);
 		if (root.endsWith('/')) {
 			root = root.slice(0, -1);
 		}
 
-		// Detect if we should descend into dotfile directories during crawl
-		// Only needed when dotfile dirs are PATHS to search (not match targets)
-		// - Brace expansion: {src,.config}/**/* → need to enter .config
-		// - Pattern starts with dot: .*/**/* → need to enter dotfile dirs
-		// NOT needed for:
-		// - **/.cache → looking FOR .cache, not searching INSIDE hidden dirs
-		//   (picomatch with dot:false won't match .git/.cache anyway)
-		const descendIntoDotDirectories = /^\.[^\\/.]|[{,]\.[^\\/.]/.test(scanned.glob);
+		// Add to group for this root
+		const group = groups.get(root);
+		if (group) {
+			group.globs.push(scanned.glob);
+			group.needsDot = group.needsDot || needsDotMode(scanned.glob);
+		} else {
+			groups.set(root, {
+				globs: [scanned.glob],
+				needsDot: needsDotMode(scanned.glob),
+			});
+		}
+	}
+
+	// Execute one filesystem walk per unique root
+	await concurrentMap([...groups.keys()], GLOB_CONCURRENCY, async (root) => {
+		const group = groups.get(root)!;
 
 		const globStart = performance.now();
-		const matches = await glob(root, scanned.glob, {
-			dot: descendIntoDotDirectories,
+		const matches = await glob(root, group.globs, {
+			dot: group.needsDot,
 			ignore,
 		});
-		debug(`glob pattern=${pattern} files=${matches.length} time=${(performance.now() - globStart).toFixed(2)}ms`);
+		debug(
+			`glob root=${root} patterns=${group.globs.length} `
+			+ `matches=${matches.length} time=${(performance.now() - globStart).toFixed(2)}ms`,
+		);
 
-		// Avoid spread to prevent stack overflow with 100k+ matches (V8 arg limit ~65k)
 		for (const match of matches) {
 			files.push(match);
 		}
