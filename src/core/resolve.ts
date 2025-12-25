@@ -61,6 +61,11 @@ type GlobGroup = {
 	needsDot: boolean;
 };
 
+type ExplicitPath = {
+	fullPath: string;
+	originalPattern: string;
+};
+
 export const resolvePatterns = async (
 	patterns: string[],
 	options: ResolveOptions,
@@ -69,8 +74,9 @@ export const resolvePatterns = async (
 	const files: string[] = [];
 	const notFound: string[] = [];
 
-	// Group glob patterns by their root directory for single-walk optimization
+	// Phase 1: Synchronous grouping (CPU-bound, fast)
 	const groups = new Map<string, GlobGroup>();
+	const explicitPaths: ExplicitPath[] = [];
 
 	for (const pattern of patterns) {
 		const posixPattern = toPosix(pattern);
@@ -87,17 +93,11 @@ export const resolvePatterns = async (
 		validatePath(pathToValidate, cwd, dangerous);
 
 		if (!scanned.isGlob) {
-			// Handle explicit paths immediately (no grouping needed)
-			await fs.access(fullPattern).then(
-				() => {
-					debug(`explicit path exists: ${fullPattern}`);
-					files.push(fullPattern);
-				},
-				() => {
-					debug(`explicit path not found: ${pattern}`);
-					notFound.push(pattern);
-				},
-			);
+			// Collect explicit paths for concurrent checking later
+			explicitPaths.push({
+				fullPath: fullPattern,
+				originalPattern: pattern,
+			});
 			continue;
 		}
 
@@ -120,24 +120,41 @@ export const resolvePatterns = async (
 		}
 	}
 
-	// Execute one filesystem walk per unique root
-	await concurrentMap([...groups.keys()], GLOB_CONCURRENCY, async (root) => {
-		const group = groups.get(root)!;
+	// Phase 2: Concurrent I/O execution
+	await Promise.all([
+		// Check explicit paths concurrently
+		concurrentMap(explicitPaths, GLOB_CONCURRENCY, async ({ fullPath, originalPattern }) => {
+			await fs.access(fullPath).then(
+				() => {
+					debug(`explicit path exists: ${fullPath}`);
+					files.push(fullPath);
+				},
+				() => {
+					debug(`explicit path not found: ${originalPattern}`);
+					notFound.push(originalPattern);
+				},
+			);
+		}),
 
-		const globStart = performance.now();
-		const matches = await glob(root, group.globs, {
-			dot: group.needsDot,
-			ignore,
-		});
-		debug(
-			`glob root=${root} patterns=${group.globs.length} `
-			+ `matches=${matches.length} time=${(performance.now() - globStart).toFixed(2)}ms`,
-		);
+		// Walk globs concurrently (one walk per unique root)
+		concurrentMap([...groups.keys()], GLOB_CONCURRENCY, async (root) => {
+			const group = groups.get(root)!;
 
-		for (const match of matches) {
-			files.push(match);
-		}
-	});
+			const globStart = performance.now();
+			const matches = await glob(root, group.globs, {
+				dot: group.needsDot,
+				ignore,
+			});
+			debug(
+				`glob root=${root} patterns=${group.globs.length} `
+				+ `matches=${matches.length} time=${(performance.now() - globStart).toFixed(2)}ms`,
+			);
+
+			for (const match of matches) {
+				files.push(match);
+			}
+		}),
+	]);
 
 	return {
 		files,

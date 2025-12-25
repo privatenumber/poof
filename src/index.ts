@@ -13,6 +13,36 @@ export type { Failure, Options, Result } from './types.ts';
 const debug = createDebug('poof:rename');
 const RENAME_CONCURRENCY = 100;
 
+/**
+ * Filter out paths that are children of other paths in the list.
+ * This prevents unnecessary ENOENT errors when a parent directory is renamed
+ * before we try to rename its children.
+ */
+const filterNestedPaths = (paths: string[]): string[] => {
+	if (paths.length === 0) {
+		return [];
+	}
+
+	// Sort lexicographically - parents sort before children (e.g., "a" before "a/b")
+	const sorted = paths.slice().sort((a, b) => (a < b ? -1 : (a > b ? 1 : 0)));
+
+	const roots: string[] = [];
+	let lastAccepted: string | undefined;
+
+	for (const filePath of sorted) {
+		// Skip if current path is a child of the last accepted path
+		// The trailing '/' check prevents false positives (e.g., "/build" vs "/build-script")
+		if (lastAccepted && filePath.startsWith(`${lastAccepted}/`)) {
+			continue;
+		}
+
+		roots.push(filePath);
+		lastAccepted = filePath;
+	}
+
+	return roots;
+};
+
 const poof = async (
 	patterns: string | string[],
 	options?: Options,
@@ -31,7 +61,9 @@ const poof = async (
 	});
 	debug(`resolve files=${files.length} time=${(performance.now() - resolveStart).toFixed(2)}ms`);
 
-	const filesToDelete = files;
+	// Filter nested paths to avoid unnecessary ENOENT when parent is renamed first
+	const filesToDelete = filterNestedPaths(files);
+	debug(`filtered ${files.length} -> ${filesToDelete.length} (removed ${files.length - filesToDelete.length} nested)`);
 
 	// 3. Report Errors (NotFound)
 	const errors: Failure[] = notFound.map((pattern) => {
