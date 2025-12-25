@@ -171,8 +171,7 @@ $ poof "!(.gitkeep)"
 
 - **Root protection**: refuses to delete the filesystem root
 - **Directory scoping**: won't delete paths outside `cwd` unless `--dangerous` is passed
-- **Typo protection**: explicit paths that don't exist are reported as errors, so `poof ndoe_modoules` won't silently succeed
-- **Script-friendly globs**: glob patterns with no matches exit silently, so `poof "*.log"` won't break your scripts
+- **Script-friendly**: missing paths and empty glob matches are silently ignored (like `rm -rf`), so cleanup scripts won't fail on non-existent files
 
 ## How it works
 
