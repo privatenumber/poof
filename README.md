@@ -248,9 +248,11 @@ Some tools provide fast, non-blocking removal by moving files to the system tras
 - [trash](https://formulae.brew.sh/formula/trash) (macOS)
 - [trash-cli](https://github.com/sindresorhus/trash-cli) (cross-platform)
 
-These are useful for recoverable deletes, but large directories can accumulate in the trash and consume disk space.
+These are useful for recoverable deletes, but have some limitations:
+- Large directories accumulate in trash and consume disk space
+- `trash` fails on non-existent paths, making it unsuitable for cleanup scripts where files may or may not exist (e.g., cache files)
 
-`poof` permanently deletes files, freeing space immediately.
+`poof` permanently deletes files, freeing space immediately, and silently ignores missing paths for script-friendly behavior.
 
 ## Requirements
 
