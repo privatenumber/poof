@@ -43,7 +43,7 @@
 		"cleye": "^2.2.1",
 		"fs-fixture": "^2.7.0",
 		"lintroll": "^1.26.0",
-		"manten": "^1.9.0",
+		"manten": "^2.0.0",
 		"nano-spawn": "^2.0.0",
 		"picomatch": "^4.0.3",
 		"pkgroll": "^2.21.4",
