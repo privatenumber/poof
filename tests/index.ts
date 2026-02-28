@@ -25,9 +25,9 @@ test('expect os.tmpdir() to be set to isolated test directory', () => {
 	expect(os.tmpdir()).toBe(testTmpdir);
 });
 
-await describe('poof', ({ runTestSuite }) => {
-	runTestSuite(import('./specs/cli.ts'));
-	runTestSuite(import('./specs/api.ts'));
+await describe('poof', () => {
+	import('./specs/cli.ts');
+	import('./specs/api.ts');
 });
 
 test('temp directory is empty after all tests', async () => {

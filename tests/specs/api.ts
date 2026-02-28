@@ -2,14 +2,16 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { testSuite, expect } from 'manten';
+import {
+	describe, test, expect, onTestFail, skip,
+} from 'manten';
 import { createFixture } from 'fs-fixture';
 import poof from '../../src/index.ts';
 import { withRetry } from '../../src/utils/fs-retry.ts';
 
 const rmWorkerPath = fileURLToPath(import.meta.resolve('#rm-worker'));
 
-export default testSuite('API', ({ test, describe }) => {
+describe('API', () => {
 	test('deletes single file', async () => {
 		await using fixture = await createFixture({ 'file.txt': 'content' });
 
@@ -30,7 +32,7 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(await fixture.exists('file2.txt')).toBe(false);
 	});
 
-	test('dry run returns files without deleting', async ({ onTestFail }) => {
+	test('dry run returns files without deleting', async () => {
 		await using fixture = await createFixture({ 'file.txt': 'content' });
 		const target = fixture.getPath('file.txt');
 
@@ -59,7 +61,7 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(await fixture.exists('another file.txt')).toBe(false);
 	});
 
-	test('handles filenames with newlines', async ({ skip }) => {
+	test('handles filenames with newlines', async () => {
 		// Skip on Windows - newlines in filenames not supported
 		if (process.platform === 'win32') {
 			skip('Newlines in filenames not supported on Windows');
@@ -79,7 +81,7 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(await fixture.exists('normal.txt')).toBe(true);
 	});
 
-	test('handles filenames with emojis', async ({ skip }) => {
+	test('handles filenames with emojis', async () => {
 		// Skip on Windows - emoji glob cleanup has issues
 		if (process.platform === 'win32') {
 			skip('Emoji filenames have cleanup issues on Windows');
@@ -138,7 +140,7 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(await fixture.exists('packages/node_modules/bar/dist/index.js')).toBe(true);
 	});
 
-	test('ignore patterns skip directory traversal (not just filtering)', async ({ skip }) => {
+	test('ignore patterns skip directory traversal (not just filtering)', async () => {
 		// Skip on Windows - chmod doesn't enforce POSIX permissions
 		if (process.platform === 'win32') {
 			skip('chmod permissions not enforced on Windows');
@@ -548,7 +550,7 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(result.deleted.some(p => p.includes('src/main.ts'))).toBe(true);
 	});
 
-	test('supports relative patterns with cwd option', async ({ onTestFail }) => {
+	test('supports relative patterns with cwd option', async () => {
 		await using fixture = await createFixture({
 			'src/index.ts': 'code',
 			'src/utils/helper.ts': 'helper',
@@ -706,7 +708,7 @@ export default testSuite('API', ({ test, describe }) => {
 		expect(await fixture.exists('node_modules')).toBe(false);
 	});
 
-	describe('Safety', ({ test }) => {
+	describe('Safety', () => {
 		test('prevents deleting root', async () => {
 			const { root } = path.parse(process.cwd());
 			await expect(poof(root, { dangerous: true })).rejects.toThrow('Refusing to delete root');
@@ -742,7 +744,7 @@ export default testSuite('API', ({ test, describe }) => {
 		});
 	});
 
-	describe('Background Cleanup', ({ test }) => {
+	describe('Background Cleanup', () => {
 		test('CRITICAL: Background process clears temp files', async () => {
 			await using fixture = await createFixture({
 				'node_modules/pkg/index.js': '...',
@@ -777,7 +779,7 @@ export default testSuite('API', ({ test, describe }) => {
 			expect(exitCode).toBe(0);
 		});
 
-		test('background script handles permission denied gracefully', async ({ skip }) => {
+		test('background script handles permission denied gracefully', async () => {
 			if (process.platform === 'win32' || process.getuid?.() === 0) {
 				skip('Permission test not applicable on Windows or as root');
 			}
@@ -812,7 +814,7 @@ export default testSuite('API', ({ test, describe }) => {
 	});
 
 	// Chaos tests - edge cases that stress regex boundaries and picomatch hand-off
-	describe('Chaos', ({ test }) => {
+	describe('Chaos', () => {
 		test('handles triple-dot filenames without enabling descent mode', async () => {
 			await using fixture = await createFixture({
 				'...': 'triple dot file',
@@ -884,7 +886,7 @@ export default testSuite('API', ({ test, describe }) => {
 		});
 	});
 
-	describe('Retry Utility', ({ test }) => {
+	describe('Retry Utility', () => {
 		const alwaysRetry = () => true;
 		const neverRetry = () => false;
 

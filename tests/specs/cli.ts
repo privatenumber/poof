@@ -1,19 +1,21 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { testSuite, expect } from 'manten';
+import {
+	describe, test, expect, onTestFail,
+} from 'manten';
 import { createFixture } from 'fs-fixture';
 import { poofCli } from '../utils/poof-cli.ts';
 import { glob } from '../../src/utils/fs-glob.ts';
 import { waitForDeletion } from '../utils/wait-for-deletion.ts';
 
-export default testSuite('CLI', ({ test }) => {
+describe('CLI', () => {
 	test('shows help when no arguments provided', async () => {
 		const { stdout } = await poofCli();
 		expect(stdout).toContain('poof');
 		expect(stdout).toContain('--dry');
 	});
 
-	test('dry run lists files without deleting', async ({ onTestFail }) => {
+	test('dry run lists files without deleting', async () => {
 		await using fixture = await createFixture({
 			'file.txt': 'content',
 			'dir/nested.txt': 'nested content',
@@ -29,7 +31,7 @@ export default testSuite('CLI', ({ test }) => {
 		expect(await fixture.exists('file.txt')).toBe(true);
 	});
 
-	test('verbose mode logs deletions', async ({ onTestFail }) => {
+	test('verbose mode logs deletions', async () => {
 		await using fixture = await createFixture({ 'file.txt': 'content' });
 		const poofProcess = await poofCli(['--verbose', 'file.txt'], { cwd: fixture.path });
 		onTestFail(() => console.log(poofProcess));
@@ -39,7 +41,7 @@ export default testSuite('CLI', ({ test }) => {
 		retry: 3,
 	});
 
-	test('removes single file', async ({ onTestFail }) => {
+	test('removes single file', async () => {
 		await using fixture = await createFixture({
 			'file.txt': 'content',
 		});
@@ -53,7 +55,7 @@ export default testSuite('CLI', ({ test }) => {
 		retry: 3,
 	});
 
-	test('removes directory', async ({ onTestFail }) => {
+	test('removes directory', async () => {
 		await using fixture = await createFixture({
 			'dir/file.txt': 'content',
 			'dir/nested/deep.txt': 'deep content',
@@ -68,7 +70,7 @@ export default testSuite('CLI', ({ test }) => {
 		retry: 3,
 	});
 
-	test('removes multiple targets', async ({ onTestFail }) => {
+	test('removes multiple targets', async () => {
 		await using fixture = await createFixture({
 			'file1.txt': 'content 1',
 			'file2.txt': 'content 2',
@@ -86,7 +88,7 @@ export default testSuite('CLI', ({ test }) => {
 		retry: 3,
 	});
 
-	test('supports glob patterns', async ({ onTestFail }) => {
+	test('supports glob patterns', async () => {
 		await using fixture = await createFixture({
 			'file1.txt': 'content 1',
 			'file2.txt': 'content 2',
@@ -106,7 +108,7 @@ export default testSuite('CLI', ({ test }) => {
 		retry: 3,
 	});
 
-	test('--ignore excludes matching paths', async ({ onTestFail }) => {
+	test('--ignore excludes matching paths', async () => {
 		await using fixture = await createFixture({
 			'dist/bundle.js': 'bundle',
 			'src/index.ts': 'source',
@@ -167,7 +169,7 @@ export default testSuite('CLI', ({ test }) => {
 		});
 	});
 
-	test('performance: exits quickly', async ({ onTestFail }) => {
+	test('performance: exits quickly', async () => {
 		// Use empty files - rename is a metadata operation, file size doesn't affect performance
 		const files: Record<string, string> = {};
 		for (let i = 0; i < 100; i += 1) {
