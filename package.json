@@ -49,7 +49,7 @@
 		"picomatch": "^4.0.3",
 		"pkgroll": "^2.21.4",
 		"pretty-bytes": "^7.1.0",
-		"skills-npm": "^1.0.0",
+		"skills-npm": "^1.1.1",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	}
